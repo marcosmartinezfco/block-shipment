@@ -9,7 +9,9 @@ import "@Openzeppelin/contracts/access/Ownable.sol";
 contract shipments is Ownable {
 
     event NewCertificate(uint indexed CertificateId, string indexed ShipmentId);
-    event ChangeStorage(address indexed OldAddress, address indexed NewAddress);
+    //event ChangeStorage(address indexed OldAddress, address indexed NewAddress);
+    event LogShock(uint indexed CertificateId, uint Timestamp, uint16 Shock);
+    event ThresholdBreak(uint indexed CertificateId, uint Type);
 
     enum insuranceType { REEFER, BREAK, THEFT }
 
@@ -27,30 +29,30 @@ contract shipments is Ownable {
     }
 
     struct reefer {
-        uint minTemp;
-        uint maxTemp;
-        uint minHumidity;
-        uint maxHumidity;
-        uint threshold1MinTemp;
-        uint threshold1MaxTemp;
-        uint threshold1MinHumi;
-        uint threshold1MaxHumi;
-        uint threshold2MinTemp;
-        uint threshold2MaxTemp;
-        uint threshold2MinHumi;
-        uint threshold2MaxHumi;
+        int16 minTemp;
+        int16 maxTemp;
+        uint16 minHumidity;
+        uint16 maxHumidity;
+        int16 threshold1MinTemp;
+        int16 threshold1MaxTemp;
+        uint16 threshold1MinHumi;
+        uint16 threshold1MaxHumi;
+        int16 threshold2MinTemp;
+        int16 threshold2MaxTemp;
+        uint16 threshold2MinHumi;
+        uint16 threshold2MaxHumi;
     }
     
     struct breaks {
-        uint maxShock;
-        uint threshold1;
-        uint threshold2;
+        uint16 maxShock;
+        uint16 threshold1;
+        uint16 threshold2;
     }
 
     struct theft {
-        uint maxLumens;
-        uint threshold1;
-        uint threshold2;
+        uint32 maxLumens;
+        uint32 threshold1;
+        uint32 threshold2;
     }
 
     struct certificate {
@@ -67,13 +69,17 @@ contract shipments is Ownable {
     }
 
     uint public numCertificates;
-    certificateStorage certificatesVault;
+    //certificateStorage certificatesVault;
+    mapping(uint=>certificate) certificates;
+    mapping(uint=>mapping(uint=>uint16)) public shockRegistry;
+    mapping(uint=>uint8) shockAlarmCount;
 
-    constructor(address _certificateStorage) {
-        numCertificates = 0;
-        certificatesVault = new certificateStorage(_certificateStorage);
-    }
+    // constructor(address _certificateStorage) {
+    //     numCertificates = 0;
+    //     certificatesVault = new certificateStorage(_certificateStorage);
+    // }
 
+    /* Para cuando se implemente eternal storage
     function setStorageAddress(address _newAddress) public onlyOwner {
         address _oldAddress = address(certificatesVault);
         require(_newAddress != _oldAddress);
@@ -87,5 +93,44 @@ contract shipments is Ownable {
         certificatesVault.addCertificate( _certificate.policyNumber, _certificate);
         emit NewCertificate(_certificate.policyNumber, _certificate.shipment.bookingId);
         return _certificate.policyNumber;
+    }*/
+
+    function addCertificate(certificate memory _certificate) external returns(uint) {
+        numCertificates++;
+        require(_certificate.policyNumber == 0, "Error: Only new certificates can be added");
+        _certificate.policyNumber = numCertificates;
+        certificates[_certificate.policyNumber] = _certificate;
+        emit NewCertificate(_certificate.policyNumber, _certificate.shipment.bookingId);
+        return _certificate.policyNumber;
     }
+
+    // function logValuesReefer(uint _certificateId, uint _temperature, uint _humidity) external {
+        
+    // }
+
+    function logValuesBreak(uint _certificateId, uint16 _shock, uint _timestamp) external {
+        certificate storage certf = certificates[_certificateId];
+        require(certf.policyNumber != 0, "Error: certificate id doesn't exit");
+        require(certf.insurance == insuranceType.BREAK, "Error: certificate is not break type");
+        
+        shockRegistry[_certificateId][_timestamp] = _shock;
+        emit LogShock(_certificateId, _timestamp, _shock);
+
+        if (_shock >= certf.breaks.threshold2) {
+            emit ThresholdBreak(_certificateId, 2);
+        } else if (_shock >= certf.breaks.threshold1) {
+            emit ThresholdBreak(_certificateId, 1);
+        } else if (_shock >= certf.breaks.maxShock) {
+            shockAlarmCount[_certificateId]++;
+            if(shockAlarmCount[_certificateId] >= 10){
+                emit ThresholdBreak(_certificateId, 2);
+            } else if (shockAlarmCount[_certificateId] >= 3){
+                emit ThresholdBreak(_certificateId, 1);
+            }
+        }
+    }
+
+    // function logValuesTheft(uint _certificateId, uint16 _lumnes) external {
+
+    // }
 }
