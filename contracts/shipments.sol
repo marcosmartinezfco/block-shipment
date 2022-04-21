@@ -12,6 +12,8 @@ contract shipments is Ownable {
     //event ChangeStorage(address indexed OldAddress, address indexed NewAddress);
     event LogShock(uint indexed CertificateId, uint Timestamp, uint16 Shock);
     event ThresholdBreak(uint indexed CertificateId, uint Type);
+    event LogTheft(uint indexed CertificateId, uint Timestamp, uint16 Lumens);
+    event ThresholdTheft(uint indexed CertificateId);
 
     enum insuranceType { REEFER, BREAK, THEFT }
 
@@ -51,8 +53,7 @@ contract shipments is Ownable {
 
     struct theft {
         uint32 maxLumens;
-        uint32 threshold1;
-        uint32 threshold2;
+        uint32 threshold;
     }
 
     struct certificate {
@@ -73,6 +74,8 @@ contract shipments is Ownable {
     mapping(uint=>certificate) certificates;
     mapping(uint=>mapping(uint=>uint16)) public shockRegistry;
     mapping(uint=>uint8) shockAlarmCount;
+    mapping(uint=>mapping(uint=>uint16)) public theftRegistry;
+
 
     // constructor(address _certificateStorage) {
     //     numCertificates = 0;
@@ -112,7 +115,7 @@ contract shipments is Ownable {
         certificate storage certf = certificates[_certificateId];
         require(certf.policyNumber != 0, "Error: certificate id doesn't exit");
         require(certf.insurance == insuranceType.BREAK, "Error: certificate is not break type");
-        
+
         shockRegistry[_certificateId][_timestamp] = _shock;
         emit LogShock(_certificateId, _timestamp, _shock);
 
@@ -130,7 +133,15 @@ contract shipments is Ownable {
         }
     }
 
-    // function logValuesTheft(uint _certificateId, uint16 _lumnes) external {
+    function logValuesTheft(uint _certificateId, uint16 _lumnes, uint _timestamp) external {
+        certificate storage certf = certificates[_certificateId];
+        require(certf.policyNumber != 0, "Error: certificate id doesn't exit");
+        require(certf.insurance == insuranceType.BREAK, "Error: certificate is not break type");
 
-    // }
+        theftRegistry[_certificateId][_timestamp] = _lumnes;
+        emit LogTheft(_certificateId, _timestamp, _lumens);
+
+        if (_lumnes >= certf.theft.threshold) 
+            emit ThresholdTheft(_certificateId);
+    }
 }
