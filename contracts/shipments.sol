@@ -8,7 +8,7 @@ import "@Openzeppelin/contracts/access/Ownable.sol";
 
 contract shipments is Ownable {
 
-    event NewCertificate(uint indexed CertificateId, string indexed ShipmentId);
+    event NewCertificate(uint indexed CertificateId, string ShipmentId, insuranceType Type);
     //event ChangeStorage(address indexed OldAddress, address indexed NewAddress);
     event LogShock(uint indexed CertificateId, uint Timestamp, uint16 Shock);
     event ThresholdBreak(uint indexed CertificateId, uint Type);
@@ -103,7 +103,7 @@ contract shipments is Ownable {
         require(_certificate.policyNumber == 0, "Error: Only new certificates can be added");
         _certificate.policyNumber = numCertificates;
         certificates[_certificate.policyNumber] = _certificate;
-        emit NewCertificate(_certificate.policyNumber, _certificate.shipment.bookingId);
+        emit NewCertificate(_certificate.policyNumber, _certificate.shipment.bookingId, _certificate.insurance);
         return _certificate.policyNumber;
     }
 
@@ -133,15 +133,15 @@ contract shipments is Ownable {
         }
     }
 
-    function logValuesTheft(uint _certificateId, uint16 _lumnes, uint _timestamp) external {
+    function logValuesTheft(uint _certificateId, uint16 _lumens, uint _timestamp) external {
         certificate storage certf = certificates[_certificateId];
         require(certf.policyNumber != 0, "Error: certificate id doesn't exit");
-        require(certf.insurance == insuranceType.BREAK, "Error: certificate is not break type");
+        require(certf.insurance == insuranceType.THEFT, "Error: certificate is not theft type");
 
-        theftRegistry[_certificateId][_timestamp] = _lumnes;
+        theftRegistry[_certificateId][_timestamp] = _lumens;
         emit LogTheft(_certificateId, _timestamp, _lumens);
 
-        if (_lumnes >= certf.theft.threshold) 
+        if (_lumens >= certf.theft.threshold) 
             emit ThresholdTheft(_certificateId);
     }
 }
