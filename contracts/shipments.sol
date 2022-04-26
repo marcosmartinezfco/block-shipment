@@ -73,7 +73,7 @@ contract shipments is Ownable {
     //certificateStorage certificatesVault;
     mapping(uint=>certificate) certificates;
     mapping(uint=>mapping(uint=>uint16)) public shockRegistry;
-    mapping(uint=>uint8) shockAlarmCount;
+    mapping(uint=>uint8) public shockAlarmCount;
     mapping(uint=>mapping(uint=>uint16)) public theftRegistry;
 
 
