@@ -6,7 +6,7 @@ certificate = (
         'Banco BBVA',       
         'BA54',             
         'Elm street',       
-        1,                
+        0,                
         (
             'shipment056',
             'Madrid',
@@ -19,12 +19,8 @@ certificate = (
             1650615046,
             1682151046
         ),
-        (0,0,0,0,0,0,0,0,0,0,0,0),
-        (
-            5,
-            7,
-            10
-        ),
+        (-5,10,5,15,-7,15,3,20,-10,20,2,25),
+        (0,0,0),
         (0,0)                
     )
 
@@ -34,5 +30,5 @@ def main():
     tx = deployed.addCertificate(certificate, {'from':dev})
     certifiId = tx.events['NewCertificate']['CertificateId']
     print(tx.events['NewCertificate'])
-    tx = deployed.logValuesBreak(certifiId, 10, 1650844800)
+    tx = deployed.logValuesReefer(certifiId, 10, 5, 1650844800)
     print(tx.events)
