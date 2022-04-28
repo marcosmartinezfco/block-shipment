@@ -9,11 +9,11 @@ import "@Openzeppelin/contracts/access/Ownable.sol";
 contract shipments is Ownable {
 
     event NewCertificate(uint indexed CertificateId, string ShipmentId, insuranceType Type);
-    event LogShock(uint indexed CertificateId, uint Timestamp, uint16 Shock);
+    event LogShock(uint indexed CertificateId, uint indexed Timestamp, uint16 Shock);
     event ThresholdBreak(uint indexed CertificateId, uint Type);
-    event LogTheft(uint indexed CertificateId, uint Timestamp, uint16 Lumens);
+    event LogTheft(uint indexed CertificateId, uint indexed Timestamp, uint16 Lumens);
     event ThresholdTheft(uint indexed CertificateId);
-    event LogReefer(uint indexed CertificateId, uint Timestamp, int16 Temp, uint16 Humidity);
+    event LogReefer(uint indexed CertificateId, uint indexed Timestamp, int16 Temp, uint16 Humidity);
     event ThresholdReefer(uint indexed CertificateId, uint Type);
 
 
@@ -129,9 +129,9 @@ contract shipments is Ownable {
     function _checkTimePassed(uint _certificateId, uint _now) private {
         if(lastAlarmReefer[_certificateId] == 0) lastAlarmReefer[_certificateId] = _now;
         else {
-            if((lastAlarmReefer[_certificateId] - _now) / 1 hours >= 24 hours)
+            if((_now - lastAlarmReefer[_certificateId]) / 1 hours >= 24 hours)
                 emit ThresholdReefer(_certificateId, 2);
-            else if ((lastAlarmReefer[_certificateId] - _now) / 1 hours >= 3 hours)
+            else if ((_now - lastAlarmReefer[_certificateId]) / 1 hours >= 3 hours)
                 emit ThresholdReefer(_certificateId, 1);
         }
     }

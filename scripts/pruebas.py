@@ -30,5 +30,9 @@ def main():
     tx = deployed.addCertificate(certificate, {'from':dev})
     certifiId = tx.events['NewCertificate']['CertificateId']
     print(tx.events['NewCertificate'])
-    tx = deployed.logValuesReefer(certifiId, 10, 5, 1650844800)
+    deployed.logValuesReefer(certifiId, 12, 5, 1650844800)
+    deployed.logValuesReefer(certifiId, 12, 5, 1650844800)
     print(tx.events)
+    tx = deployed.logValuesReefer(certifiId, 12, 5, 1650844800)
+    print(tx.events)
+    
